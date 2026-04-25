@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mê học trung - HSK1 Cửa ải 101-200</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --china-red: #bc241c; --china-gold: #d4af37; --china-dark: #8b1a14; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f4ece1;
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .chinese-font { font-family: 'Noto Sans SC', sans-serif; }
+        .art-font { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: -0.5px; color: white; text-transform: uppercase; line-height: 1.1; }
+        .header-link { font-size: 10px; color: #ffde00; font-weight: 600; text-decoration: underline; opacity: 0.9; transition: opacity 0.2s; cursor: pointer; }
+        .header-link:hover { opacity: 1; color: white; }
+        
+        /* Layout Elements */
+        #welcome-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: linear-gradient(135deg, var(--china-red), var(--china-dark)); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .course-btn { background: white; color: var(--china-red); font-weight: 800; font-size: 1.1rem; padding: 15px 40px; border-radius: 50px; margin: 10px; border: 4px solid var(--china-gold); transition: all 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-transform: uppercase; }
+        .course-btn:hover { transform: scale(1.05); background: var(--china-gold); color: white; }
+        #main-app { display: none; flex-direction: column; flex: 1; }
+
+        .timer-badge { background: rgba(0,0,0,0.3); color: #ffde00; padding: 4px 12px; border-radius: 20px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid rgba(255,222,0,0.3); }
+        .search-box { background: white; border: 2px solid var(--china-gold); border-radius: 12px; padding: 10px 15px; width: 100%; max-width: 500px; font-family: 'Montserrat', sans-serif; font-weight: 600; color: var(--china-dark); box-shadow: 0 4px 6px rgba(0,0,0,0.05); outline: none; }
+        .scroll-custom::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scroll-custom::-webkit-scrollbar-track { background: transparent; }
+        .scroll-custom::-webkit-scrollbar-thumb { background: var(--china-gold); border-radius: 10px; }
+        .hidden-content { filter: blur(8px); user-select: none; opacity: 0.3; }
+        
+        .btn-china { background: linear-gradient(135deg, var(--china-red), var(--china-dark)); color: white; box-shadow: 0 4px 0 #66110d; transition: all 0.2s; }
+        .btn-china:active { transform: translateY(2px); box-shadow: 0 1px 0 #66110d; }
+        .toggle-btn { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: var(--china-gold); color: white; margin-left: 5px; cursor: pointer; border: none; vertical-align: middle; font-weight: bold; }
+        
+        .card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 6px solid var(--china-gold); box-shadow: 0 15px 35px rgba(0,0,0,0.2); padding: 20px; }
+        .card-front { background: linear-gradient(135deg, var(--china-red), var(--china-dark)); color: white; }
+        .card-back { background: white; color: #333; transform: rotateY(180deg); }
+        .flash-action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 110px; height: 110px; border-radius: 24px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .flash-action-btn.active { background: var(--china-gold); border-color: white; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .flash-action-btn:hover { background: rgba(255,255,255,0.25); }
+        .flash-action-btn span { font-size: 2.8rem; margin-bottom: 4px; }
+        .flash-action-btn p { font-size: 0.8rem; font-weight: 900; letter-spacing: 1px; color: white; }
+        
+        /* Flashcard Writer Background - Vàng nhạt pastel theo yêu cầu */
+        #flash-writer-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); background: #fdf5c9; border: 4px solid var(--china-red); border-radius: 15px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; z-index: 50; }
+        #writing-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+        .modal-content { background: #f4ece1; padding: 2rem; border-radius: 20px; border: 8px solid var(--china-gold); max-width: 90%; width: 400px; text-align: center; position: relative; }
+        
+        /* Advanced Tip Cards */
+        .tip-card { position: relative; transition: transform 0.2s; }
+        .tip-card:hover { transform: translateX(5px); }
+        .tip-speaker { position: absolute; top: 20px; right: 20px; background: #fff5f5; color: var(--china-red); padding: 10px; border-radius: 50%; cursor: pointer; transition: all 0.2s; border: 1px solid #ffebeb; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 10; }
+        .tip-speaker:hover { background: var(--china-red); color: white; transform: scale(1.1) rotate(5deg); }
+        
+        .panda-decoration { position: fixed; bottom: 120px; right: 10px; font-size: 80px; z-index: 0; opacity: 0.8; pointer-events: none; }
+        .lantern-decoration { position: absolute; top: -5px; left: 20px; font-size: 40px; animation: swing 3s ease-in-out infinite; transform-origin: top center; }
+        @keyframes swing { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+        
+        .page-footer { width: 100%; padding: 20px 0; text-align: center; margin-top: auto; position: relative; z-index: 20; }
+        .quiz-correct { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; animation: bounce 0.5s ease; }
+        .quiz-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; animation: shake 0.4s ease; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        .memory-input { width: 100px; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-family: 'Noto Sans SC', sans-serif; transition: all 0.3s; background: white; }
+    </style>
+</head>
+<body>
+    <!-- WELCOME SCREEN -->
+    <div id="welcome-screen">
+        <div class="lantern-decoration" style="left: 10%;">🏮</div>
+        <div class="lantern-decoration" style="left: 80%;">🏮</div>
+        <h1 class="art-font text-5xl md:text-7xl text-white mb-4 drop-shadow-lg">MÊ HỌC TRUNG</h1>
+        <p class="text-yellow-200 font-bold tracking-widest uppercase mb-12 border-b-2 border-yellow-500 pb-2 text-xl">HSK1 (3.0) - CỬA ẢI 2: 101 - 200/500 TỪ VỰNG</p>
+        
+        <p class="text-white mb-6 font-semibold text-lg">Vui lòng chọn chặng đường để bắt đầu:</p>
+        <div class="flex flex-wrap justify-center max-w-4xl gap-4">
+            <button onclick="startApp(1)" class="course-btn">📚 Từ 101 - 150</button>
+            <button onclick="startApp(2)" class="course-btn">🚀 Từ 151 - 200</button>
+        </div>
+        <a href="https://www.tiktok.com/@mehoctrung_?_r=1&_t=ZS-95ixxa7dvbr" target="_blank" class="mt-12 text-yellow-300 underline font-bold hover:text-white transition">Follow TikTok: Mê học trung</a>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app">
+        <div class="panda-decoration">🐼</div>
+        
+        <div id="writing-modal" onclick="closeWritingModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <button onclick="closeWritingModal()" class="absolute top-2 right-4 text-3xl text-red-800 font-bold">&times;</button>
+                <h3 class="text-xl font-bold text-red-800 mb-2 font-quicksand uppercase">Tập viết chữ Hán</h3>
+                <p id="modal-pinyin" class="text-gray-500 italic mb-4 font-semibold"></p>
+                <div id="writer-target" class="bg-white rounded-xl inline-block border-4 border-yellow-500 shadow-inner"></div>
+                <div class="mt-4"><button onclick="animateStrokes()" class="btn-china px-8 py-2 rounded-xl font-bold uppercase">Vẽ lại</button></div>
+            </div>
+        </div>
+
+        <header class="w-full bg-[#bc241c] py-6 px-4 shadow-2xl border-b-4 border-[#d4af37] relative overflow-hidden z-10">
+            <div class="max-w-7xl mx-auto flex justify-between items-center relative z-10">
+                <div class="flex items-center gap-4">
+                    <div class="flex flex-col items-center justify-center cursor-pointer hover:scale-110 transition" onclick="goHome()" title="Quay về Trang chủ">
+                        <div class="bg-yellow-400 p-2 rounded-full border-2 border-white shadow-lg"><span class="text-xl">🏠</span></div>
+                        <span class="text-[9px] text-white font-bold mt-1 uppercase tracking-widest opacity-90">Trở về</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="art-font">MÊ HỌC TRUNG</h1>
+                        <a href="https://www.tiktok.com/@mehoctrung_?_r=1&_t=ZS-95ixxa7dvbr" target="_blank" class="header-link mt-1">Follow mình nghen: Tiktok "Mê học trung"</a>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <div class="timer-badge" id="study-timer">00:00:00</div>
+                    <div id="score-box" class="bg-black/20 px-4 py-1 rounded-xl backdrop-blur-md border border-white/20 text-center">
+                        <span id="score-val" class="text-xl font-bold text-yellow-300">0</span>
+                        <span class="text-white text-[9px] block opacity-70 uppercase font-bold">Điểm</span>
+                    </div>
+                </div>
+            </div>
+            <svg class="opacity-10 absolute top-0 right-0 w-48 h-48 fill-white" viewBox="0 0 100 100"><path d="M20,50 Q20,30 40,30 Q50,10 70,30 Q90,30 90,50 Q90,70 70,70 Q60,90 40,70 Q20,70 20,50"/></svg>
+        </header>
+
+        <nav class="w-full max-w-6xl flex flex-wrap justify-center mt-6 px-4 mx-auto gap-2 z-10">
+            <button onclick="switchTab('library')" class="tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white text-red-800 shadow-lg border-b-4 border-red-800">Thư viện</button>
+            <button onclick="switchTab('tips')" class="tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white/50 text-gray-600">Mẹo nhớ chữ</button>
+            <button onclick="switchTab('typingHz')" class="tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white/50 text-gray-600">Gõ chữ Hán</button>
+            <button onclick="switchTab('typingVi')" class="tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white/50 text-gray-600">Gõ tiếng Việt</button>
+            <button onclick="switchTab('flashcard')" class="tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white/50 text-gray-600">Flashcard</button>
+            <button onclick="switchTab('quiz')" class="tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white/50 text-gray-600">Trắc nghiệm</button>
+        </nav>
+
+        <main id="app-body" class="w-full max-w-[98%] p-6 mx-auto flex flex-col items-center z-10 flex-1"></main>
+
+        <footer class="page-footer">
+            <p class="text-red-800 font-bold text-[11px] italic drop-shadow-sm mb-1 uppercase tracking-wide">Tạo bởi “Mê học Trung” - Follow mình nghen</p>
+            <p class="text-gray-600 font-semibold tracking-wide text-[10px]">Kết nối: <a href="https://www.tiktok.com/@mehoctrung_?_r=1&_t=ZS-95ixxa7dvbr" target="_blank" class="text-red-600 underline hover:text-red-800 transition-colors font-bold">TikTok Mê học trung</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // ==============================================================
+        // DỮ LIỆU NÉN: TỪ 101 - 200 (Có phân tích bộ thủ và mẹo sâu)
+        // Format chuẩn: hz|py|type|vi|ex|radicals|construction|memoryTrick
+        // ==============================================================
+
+        // Từ 101 - 150
+        const rawSet1 = [
+            "房间|fángjiān|Danh từ|căn phòng, buồng|我的房间。/Wǒ de fángjiān./Phòng của tôi.|房 (Hộ 户 - cửa 1 cánh, Phương 方 - vuông vắn), 间 (Môn 门 - cửa chính, Nhật 日 - mặt trời)|Từ ghép hội ý. 房 chỉ căn nhà, 间 chỉ khoảng không gian.|Căn phòng (房) là khoảng không gian vuông vắn (方) nằm sau cánh cửa (门) để đón ánh nắng (日).",
+            "房子|fángzi|Danh từ|nhà, nhà cửa|大房子。/Dà fángzi./Nhà lớn.|房 (Hộ 户, Phương 方), 子 (Tử - con cái)|Từ ghép.|Căn nhà (房) hoàn chỉnh được xây dựng để con cái (子) có nơi sinh sống.",
+            "放|fàng|Động từ|để, cất, đặt|放在桌子上。/Fàng zài zhuōzi shàng./Đặt trên bàn.|方 (Phương - vuông vắn/phương hướng), 攵 (Phộc - đánh nhẹ)|Chữ hình thanh. Bộ 攵 chỉ hành động của bàn tay.|Dùng tay (攵) đặt đồ vật vào đúng phương hướng (方) một cách cẩn thận.",
+            "放假|fàng//jià|Động từ|nghỉ, nghỉ lễ|明天放假。/Míngtiān fàngjià./Ngày mai nghỉ lễ.|放 (Thả/Đặt), 假 (Nhân 亻, Đoạn 叚)|Động tân (ly hợp).|Tạm thời buông bỏ (放) công việc để con người (亻) được tận hưởng kỳ nghỉ (假).",
+            "放学|fàng//xué|Động từ|tan học|五点放学。/Wǔ diǎn fàngxué./5 giờ tan học.|放 (Thả/Buông), 学 (Học)|Động tân (ly hợp).|Buông bỏ (放) việc học tập (学) trên trường để trở về nhà.",
+            "飞|fēi|Động từ|bay|鸟在飞。/Niǎo zài fēi./Chim đang bay.|Chính nó là bộ 飞 (Phi)|Chữ tượng hình.|Hình ảnh một con chim dang rộng đôi cánh lướt bay vút lên bầu trời.",
+            "飞机|fēijī|Danh từ|máy bay|坐飞机。/Zuò fēijī./Đi máy bay.|飞 (Bay), 机 (Cơ - Mộc 木, Kỷ 几)|Từ ghép.|Cỗ máy (机) do con người chế tạo có khả năng bay lượn (飞) trên không trung.",
+            "非常|fēicháng|Phó từ|rất, cực kỳ|非常好。/Fēicháng hǎo./Vô cùng tốt.|非 (Phi - không/trái), 常 (Thường - bình thường)|Từ ghép.|Mức độ đạt đến đỉnh điểm, không (非) còn ở mức độ bình thường (常) nữa.",
+            "分|fēn|Lượng từ|phút, phần|十分钟。/Shí fēnzhōng./10 phút.|八 (Bát - chia cắt), 刀 (Đao - con dao)|Chữ hội ý.|Dùng một con dao (刀) sắc bén để chia tách sự vật ra làm hai phần (八).",
+            "风|fēng|Danh từ|gió|大风。/Dà fēng./Gió to.|Chính nó là bộ 风 (Phong). Bên trong có bộ 虫 (Trùng - côn trùng)|Chữ hình thanh.|Cơn gió (风) lớn thổi qua mang theo các loài côn trùng (虫) bay tứ tung khắp nơi.",
+            "干|gān|Tính từ|khô, cạn|衣服干了。/Yīfu gān le./Áo khô rồi.|Chính nó là bộ 干 (Can).|Chữ tượng hình.|Hình ảnh một chiếc gậy hình chữ thập (十) được cắm lên để phơi đồ cho khô.",
+            "干净|gānjìng|Tính từ|sạch sẽ, gọn gàng|很干净。/Hěn gānjìng./Rất sạch sẽ.|干 (Khô), 净 (Tịnh - Băng 冫, Tranh 争)|Từ ghép.|Một khu vực không chỉ khô ráo (干) mà còn được dọn dẹp thanh tịnh (净) thì sẽ rất sạch sẽ.",
+            "干|gàn|Động từ|làm, làm việc|干活。/Gànhuó./Làm việc.|Chính nó là bộ 干 (Can).|Chữ chỉ sự.|Trong khẩu ngữ, từ này đại diện cho các hành động, công việc hoặc hoạt động lao động chân tay.",
+            "干什么|gàn shénme|Cụm từ|làm gì, tại sao|你在干什么？/Nǐ zài gàn shénme?/Đang làm gì thế?|干 (Làm), 什么 (Cái gì)|Cụm động tân.|Câu hỏi phổ biến dùng để thắc mắc hành động mà người đối diện đang thực hiện là việc gì.",
+            "高|gāo|Tính từ|cao|他很高。/Tā hěn gāo./Anh ấy rất cao.|Chính nó là bộ 高 (Cao).|Chữ tượng hình.|Nhìn giống hệt hình ảnh một tòa tháp cao vút, có nhiều tầng và một cái cổng/mái vòm ở dưới.",
+            "高兴|gāoxìng|Tính từ|vui vẻ, phấn chấn|我很高兴。/Wǒ hěn gāoxìng./Tôi rất vui.|高 (Cao), 兴 (Hứng - Bát 八)|Từ ghép.|Niềm vui, cảm xúc và sự hứng thú (兴) bên trong lòng được đẩy lên rất cao (高).",
+            "告诉|gàosu|Động từ|kể, bảo, nói cho|告诉我。/Gàosu wǒ./Nói tôi biết.|告 (Cáo - Khẩu 口), 诉 (Tố - Ngôn 讠)|Từ ghép đồng nghĩa.|Dùng cái miệng (口) và lời nói ngôn từ (讠) để truyền đạt thông tin cho người khác biết.",
+            "哥哥|gēge|Danh từ|anh, anh trai|我的哥哥。/Wǒ de gēge./Anh trai tôi.|哥 (Ca) gồm hai chữ Khả (可)|Chữ hội ý.|Hai chữ Khả (可) xếp chồng lên nhau như hai người anh em đùm bọc, nâng đỡ nhau.",
+            "歌|gē|Danh từ|bài hát, bài ca|听歌。/Tīng gē./Nghe nhạc.|欠 (Khiếm - há miệng), 哥 (Ca - âm đọc)|Chữ hình thanh.|Con người phải há miệng rộng (欠) ra để có thể cất lên những bài ca (哥) tuyệt đẹp.",
+            "个|gè|Lượng từ|cái, chiếc|一个。/Yí gè./Một cái.|人 (Nhân - người), 丨 (Cổn - nét sổ)|Chữ hội ý.|Đây là lượng từ phổ biến nhất, một nét sổ thẳng (丨) bên người (人) để đếm từng cá thể độc lập.",
+            "给|gěi|Động/Giới từ|cho, đưa cho|给我。/Gěi wǒ./Đưa tôi.|纟 (Mịch - tơ lụa), 合 (Hợp - hợp lại)|Chữ hình thanh.|Dùng những dải sợi tơ lụa (纟) gom hợp lại (合) để mang làm quà tặng hoặc cung cấp cho người khác.",
+            "跟|gēn|Giới từ|với, cùng, đi theo|跟我走。/Gēn wǒ zǒu./Đi cùng tôi.|足 (Túc - bàn chân), 艮 (Cấn - cứng)|Chữ hình thanh.|Dùng đôi bàn chân (足) của mình để bước đi theo sát gót cùng với một ai đó.",
+            "工人|gōngrén|Danh từ|công nhân|好工人。/Hǎo gōngrén./Công nhân tốt.|工 (Công - công việc), 人 (Nhân - người)|Từ ghép.|Chỉ người (人) sử dụng sức lực để thực hiện các công (工) việc lao động sản xuất.",
+            "工作|gōngzuò|Danh/Động|làm việc, việc làm|工作很忙。/Gōngzuò hěn máng./Công việc rất bận.|工 (Công - việc), 作 (Tác - làm)|Từ ghép.|Con người (亻) phải không ngừng tác (作) động, làm lụng để tạo ra những công (工) việc có giá trị.",
+            "关|guān|Động từ|đóng, tắt, khép|关门。/Guānmén./Đóng cửa.|丷 (Bát - hai phẩy), 天 (Thiên - trời)|Chữ tượng hình.|Nhìn giống hệt hình ảnh hai cánh cửa đang được khép sát và đóng kín lại.",
+            "关上|guānshang|Động từ|đóng lại, khóa|关上窗。/Guānshang chuāng./Đóng cửa sổ lại.|关 (Đóng), 上 (Trên/Lên)|Động bổ xu hướng.|Hành động khép hai mặt của cánh cửa sát lại với nhau sao cho không còn khe hở.",
+            "贵|guì|Tính từ|đắt, quý giá|太贵了。/Tài guì le./Đắt quá.|中 (Trung), 一 (Nhất), 贝 (Bối - tiền)|Chữ hội ý.|Những đồ vật phải dùng rất nhiều bảo bối, tiền bạc (贝) mới mua được thì vô cùng đắt đỏ.",
+            "国|guó|Danh từ|nước, quốc gia|中国。/Zhōngguó./Trung Quốc.|囗 (Vi - vây quanh), 玉 (Ngọc - ngọc quý)|Chữ hội ý.|Một quốc gia vững mạnh là nơi bảo vệ viên ngọc quý (玉) nằm gọn trong những bức tường thành (囗).",
+            "国家|guójiā|Danh từ|đất nước, nhà nước|我的国家。/Wǒ de guójiā./Đất nước tôi.|国 (Quốc gia), 家 (Nhà)|Từ ghép.|Một đất nước rộng lớn bao gồm hàng vạn mái nhà (家) của các gia đình hợp lại mà thành.",
+            "国外|guó wài|Danh từ|nước ngoài|去国外。/Qù guó wài./Đi nước ngoài.|国 (Nước), 外 (Ngoài - Tịch 夕, Bốc 卜)|Từ ghép.|Những khu vực nằm bên ngoài (外) biên giới lãnh thổ của một quốc gia (国).",
+            "过|guò|Động từ|qua, vượt qua, đón|过生日。/Guò shēngrì./Đón sinh nhật.|辶 (Xước - bước đi), 寸 (Thốn - tấc)|Chữ hình thanh.|Sự chuyển động: Bước chân đi (辶) từng tấc (寸) một để vượt qua một chặng thời gian hoặc không gian.",
+            "还|hái|Phó từ|vẫn, còn|还在。/Hái zài./Vẫn ở đây.|辶 (Xước - đi), 不 (Bất - không)|Chữ hình thanh.|Cứ đi vòng lại (辶), diễn tả một sự việc, hành động vẫn đang tiếp diễn và chưa kết thúc.",
+            "还是|háishi|Phó từ/Liên từ|vẫn còn, hay là|你去还是他去？/Nǐ qù háishi tā qù?/Bạn đi hay anh ta đi?|还 (Vẫn/Còn), 是 (Là)|Từ ghép.|Thường dùng để đưa ra sự lựa chọn trong câu hỏi (hay là) hoặc khẳng định sự việc vẫn như cũ.",
+            "还有|hái yǒu|Cụm từ|còn có, vẫn còn|还有一个。/Hái yǒu yí gè./Còn 1 cái.|还 (Vẫn/còn) + 有 (Có)|Cụm từ.|Ngoài những thứ đã được liệt kê thì sự vật/sự việc vẫn còn tồn tại thêm những thứ khác nữa.",
+            "孩子|háizi|Danh từ|trẻ em, đứa trẻ|好孩子。/Hǎo háizi./Đứa trẻ ngoan.|孩 (Hài - Tử 子, Hợi 亥), 子 (Tử)|Từ ghép.|Đại diện cho lớp trẻ em, con nít vẫn còn nhỏ tuổi (子).",
+            "汉语|Hànyǔ|Danh từ|tiếng Hán|学汉语。/Xué Hànyǔ./Học tiếng Hán.|汉 (Hán - Thủy 氵, Hựu 又), 语 (Ngữ - Ngôn 讠)|Từ ghép.|Ngôn ngữ nói (语) chính thức được sử dụng bởi những người dân thuộc dân tộc Hán (汉).",
+            "汉字|Hànzì|Danh từ|chữ Hán|写汉字。/Xiě Hànzì./Viết chữ Hán.|汉 (Hán), 字 (Chữ - Miên 宀, Tử 子)|Từ ghép.|Hệ thống văn bản, chữ viết (字) do người Hán (汉) sáng tạo và truyền lại bao đời nay.",
+            "好|hǎo|Tính từ|ổn, hay, tốt, lành|很好。/Hěn hǎo./Rất tốt.|女 (Nữ - phụ nữ), 子 (Tử - con)|Chữ hội ý.|Người phụ nữ (女) sinh được con cái (子) để nối dõi tông đường là một điều vô cùng tốt đẹp.",
+            "好吃|hǎochī|Tính từ|ngon|很好吃。/Hěn hǎochī./Rất ngon.|好 (Tốt) + 吃 (Ăn - Khẩu 口, Khất 乞)|Cụm tính từ.|Thức ăn cho vào miệng ăn (吃) mang lại cảm giác rất tuyệt vời và tốt (好) cho vị giác.",
+            "好看|hǎokàn|Tính từ|đẹp, xinh, hay|这部电影很好看。/Zhè bù diànyǐng hěn hǎokàn./Bộ phim này rất hay.|好 (Tốt) + 看 (Nhìn - Thủ 手, Mục 目)|Cụm tính từ.|Một hình dáng hoặc một tác phẩm (phim ảnh) khi nhìn (看) vào thấy rất đẹp và đầy tính thu hút.",
+            "好听|hǎotīng|Tính từ|hay, êm tai|这首歌很好听。/Zhè shǒu gē hěn hǎotīng./Bài hát này rất hay.|好 (Tốt) + 听 (Nghe - Khẩu 口, Cân 斤)|Cụm tính từ.|Âm điệu lọt vào trong tai nghe (听) cảm thấy rất mượt mà, hay và tốt (好).",
+            "好玩儿|hǎowánr|Tính từ|thú vị, vui|这里很好玩儿。/Zhèlǐ hěn hǎowánr./Ở đây rất vui.|好 (Tốt) + 玩儿 (Chơi - Ngọc 王, Nguyên 元)|Cụm tính từ.|Một trò chơi hay địa điểm mang lại cảm giác giải trí rất cao khi chơi (玩).",
+            "号|hào|Danh/Lượng|số thứ tự, ngày|今天几号？/Jīntiān jǐ hào?/Hôm nay ngày mấy?|口 (Khẩu - miệng), 丂 (Khảo)|Chữ hình thanh.|Dùng cái miệng (口) của mình để hô to báo cáo các con số thứ tự hoặc ngày tháng năm.",
+            "喝|hē|Động từ|uống|喝水。/Hē shuǐ./Uống nước.|口 (Khẩu - miệng), 曷 (Hạt - âm đọc)|Chữ hình thanh.|Con người mở miệng (口) ra để nuốt/uống các chất lỏng như nước, rượu vào trong bụng.",
+            "和|hé|Giới từ/Liên từ|và, với, cùng|我和你。/Wǒ hé nǐ./Tôi và bạn.|禾 (Hòa - cây lúa), 口 (Khẩu - miệng)|Chữ hội ý.|Hình ảnh đại diện cho sự hòa thuận: Cây lúa (禾) đem đến lương thực cho cái miệng (口) con người.",
+            "很|hěn|Phó từ|rất|很大。/Hěn dà./Rất lớn.|彳 (Xích - bước chân đi), 艮 (Cấn - cứng rắn)|Chữ hình thanh/hội ý.|Bước đi (彳) mà gặp một vật cản vô cùng cứng rắn (艮) thì phải dùng sức cố gắng 'rất' nhiều.",
+            "后|hòu|Danh từ|sau, phía sau|后门。/Hòumén./Cửa sau.|口 (Khẩu - miệng), 厂 (Hán)|Chữ tượng hình/hội ý.|Người đưa ra lệnh bằng miệng (口) cho kẻ khác làm thường là người đứng khuất ở phía sau.",
+            "后边|hòubian|Danh từ|phía sau, đằng sau|在后边。/Zài hòubian./Ở phía sau.|后 (Sau) + 边 (Phía/Bên - Xước 辶, Lực 力)|Từ ghép.|Chỉ vùng không gian/biên giới nằm ở đằng sau một sự vật hoặc một con người.",
+            "后天|hòutiān|Danh từ|ngày kia, ngày mốt|后天见。/Hòutiān jiàn./Ngày mốt gặp.|后 (Sau) + 天 (Ngày/Trời - Đại 大, Nhất 一)|Từ ghép.|Khoảng thời gian nằm ở phía sau (后) ngày mai, tức là cách thời điểm hiện tại hai ngày.",
+            "花|huā|Danh từ|hoa|这朵花真漂亮。/Zhè duǒ huā zhēn piàoliang./Bông hoa này thật đẹp.|艹 (Thảo - cây cỏ), 化 (Hóa - thay đổi)|Chữ hình thanh.|Cây cỏ (艹) đâm chồi nảy lộc và chuyển hóa (化) bung nở ra một bông hoa đẹp rực rỡ."
+        ];
+
+        // Cửa ải 2: Từ 51 - 100
+        const rawSet2 = [
+            "话|huà|Danh từ|lời nói, câu nói|听话。/Tīnghuà./Nghe lời.|讠 (Ngôn - lời nói), 舌 (Thiệt - lưỡi)|Chữ hội ý.|Con người phải cử động và uốn cái lưỡi (舌) để phát ra ngôn từ (讠) tạo thành những lời nói.",
+            "坏|huài|Tính từ|xấu, không tốt, hỏng|机器坏了。/Jīqì huài le./Máy hỏng rồi.|土 (Thổ - đất đai), 不 (Bất - không)|Chữ hội ý.|Một bức tường hay nền đất (土) đã không (不) còn giữ được hình dáng ban đầu, nghĩa là đã bị hỏng.",
+            "还|huán|Động từ|về, trả lại|还书。/Huán shū./Trả sách.|辶 (Xước - bước đi), 不 (Bất - không)|Chữ hình thanh.|Đích thân cầm đồ vật bước đi (辶) một chuyến để trao trả lại nguyên vẹn cho chủ cũ.",
+            "回|huí|Động từ|quay về, trở về|回家。/Huí jiā./Về nhà.|囗 (Vi - vây quanh), 口 (Khẩu - miệng)|Chữ tượng hình.|Hình ảnh những vòng tròn lồng vào nhau tạo thành hình xoáy trôn ốc thể hiện sự quay lại điểm xuất phát.",
+            "回答|huídá|Động/Danh|đáp, trả lời|回答问题。/Huídá wèntí./Trả lời câu hỏi.|回 (Về/Hồi), 答 (Đáp - Trúc 竹, Hợp 合)|Từ ghép.|Đưa ra câu nói/phản hồi (đáp) để quay ngược lại (hồi) tương tác với người đã đưa ra câu hỏi.",
+            "回到|huídào|Động từ|trở về, quay lại đến|回到了。/Huídào le./Trở về đến nơi rồi.|回 (Về) + 到 (Đến - Chí 至, Đao 刂)|Động bổ kết quả.|Hành động quay trở về đã hoàn tất và chạm đến tận đích đến.",
+            "回家|huí jiā|Động từ|về nhà|我要回家。/Wǒ yào huí jiā./Tôi muốn về nhà.|回 (Về) + 家 (Nhà - Miên 宀, Thỉ 豕)|Động tân.|Rời khỏi nơi bản thân đang ở để di chuyển quay ngược lại mái ấm gia đình của mình.",
+            "回来|huílái|Động từ|về, trở lại, quay về|你快回来。/Nǐ kuài huílái./Bạn mau về đây.|回 (Về) + 来 (Đến)|Động bổ xu hướng.|Hành động quay lại nhưng là di chuyển hướng tiến về phía của người đang phát ra câu nói.",
+            "回去|huíqù|Động từ|về, trở về|他回去了。/Tā huíqù le./Anh ấy đi về rồi.|回 (Về) + 去 (Đi)|Động bổ xu hướng.|Hành động quay lại nhưng là di chuyển hướng lùi xa ra khỏi khu vực của người đang nói.",
+            "会|huì|Động từ|biết, có thể, sẽ|我会做。/Wǒ huì zuò./Tôi biết làm.|人 (Nhân - người), 云 (Vân - đám mây)|Chữ hội ý.|Con người hội tụ lại (như mây), trải qua quá trình học hỏi rèn luyện để 'biết' làm một công việc gì đó.",
+            "火车|huǒchē|Danh từ|tàu hỏa|坐火车。/Zuò huǒchē./Đi tàu hỏa.|火 (Hỏa - ngọn lửa), 车 (Xe - xe cộ)|Từ ghép.|Chỉ phương tiện giao thông (车) khổng lồ thời xưa chuyên chạy bằng cách đốt than sinh ra lửa (火).",
+            "机场|jīchǎng|Danh từ|sân bay|去机场。/Qù jīchǎng./Đi sân bay.|机 (Máy bay - Mộc 木, Kỷ 几), 场 (Sân/Bãi - Thổ 土)|Từ ghép.|Một bãi đất trống (场) trải nhựa vô cùng rộng lớn được xây dựng làm nơi để máy bay (机) cất hạ cánh.",
+            "机票|jīpiào|Danh từ|vé máy bay|买机票。/Mǎi jīpiào./Mua vé máy bay.|机 (Máy bay), 票 (Vé - Thị 示, Tây 西)|Từ ghép.|Tờ phiếu (票) thông hành xác nhận người sở hữu được phép bước lên trên máy bay (机) để di chuyển.",
+            "鸡蛋|jīdàn|Danh từ|trứng gà|吃鸡蛋。/Chī jīdàn./Ăn trứng gà.|鸡 (Gà - Hựu 又, Điểu 鸟), 蛋 (Trứng - Thất 疋, Trùng 虫)|Từ ghép.|Quả trứng (蛋) sinh sản tự nhiên do con gà (鸡) mái ấp và đẻ ra.",
+            "几|jǐ|Đại từ|mấy, vài, bao nhiêu|几个人？/Jǐ gè rén?/Mấy người?|Chính nó là bộ 几 (Kỷ - cái bàn nhỏ).|Chữ tượng hình.|Nhìn giống hình ảnh một cái bàn nhỏ, dùng làm đại từ nghi vấn để hỏi số lượng (thường áp dụng cho số dưới 10).",
+            "记|jì|Động từ|nhớ, ghi nhớ, ghi chép|记下来。/Jì xiàlái./Ghi chép lại.|讠 (Ngôn - lời nói), 己 (Kỷ - bản thân)|Chữ hình thanh.|Dùng lời nói (讠) hoặc cây bút để ghi chép lưu giữ lại thông tin cho bản thân (己) mình nhớ.",
+            "记得|jìde|Động từ|nhớ, nhớ lại, nhớ được|我还记得。/Wǒ hái jìde./Tôi vẫn nhớ.|记 (Nhớ) + 得 (Được - Xích 彳, Nhật 日, Thốn 寸)|Động bổ.|Hành động khắc ghi vào trí não và có thể lấy lại (được) những thông tin đó khi cần thiết.",
+            "记住|jìzhù|Động từ|nhớ, ghi nhớ kĩ|记住了。/Jìzhù le./Nhớ kĩ rồi.|记 (Nhớ) + 住 (Trú - vững chắc, Nhân 亻, Chủ 主)|Động bổ kết quả.|Lưu giữ và ghi nhớ thông tin một cách vô cùng vững chắc trong não, đảm bảo không bị quên lãng.",
+            "家|jiā|Danh/Lượng|nhà, gia đình, hiệu, tiệm|回家。/Huí jiā./Về nhà.|宀 (Miên - mái nhà), 豕 (Thỉ - con lợn)|Chữ hội ý.|Dưới mái che của căn nhà (宀) có nuôi một đàn lợn (豕) béo tốt tượng trưng cho một gia đình sung túc ấm no.",
+            "家里|jiālǐ|Danh từ|trong nhà, trong gia đình|在家里。/Zài jiālǐ./Ở trong nhà.|家 (Nhà), 里 (Lý - bên trong, Điền 田, Thổ 土)|Từ ghép.|Chỉ vị trí địa lý nằm lọt thỏm ở phía bên trong nội khu của một căn nhà.",
+            "家人|jiārén|Danh từ|người nhà, người thân|我的家人。/Wǒ de jiārén./Người nhà tôi.|家 (Nhà), 人 (Người)|Từ ghép.|Tập hợp tất cả những con người (人) ruột thịt sinh sống cùng nhau dưới một mái ấm gia đình (家).",
+            "间|jiān|Lượng từ|căn, phòng|一间房。/Yì jiān fáng./Một căn phòng.|门 (Môn - cánh cửa), 日 (Nhật - mặt trời)|Chữ hội ý.|Khoảng không gian/khe hở ở giữa hai cánh cửa (门) hé mở để đón ánh nắng (日) lọt vào nhà.",
+            "见|jiàn|Động từ|gặp, thấy|明天见。/Míngtiān jiàn./Ngày mai gặp.|Chính nó là bộ 见 (Kiến - nhìn thấy).|Chữ tượng hình.|Phía trên là đôi mắt to, phía dưới là đôi chân, tạo thành hình ảnh một con người đang nhìn/gặp gỡ.",
+            "见面|jiànmiàn|Động từ|gặp mặt|见个面。/Jiàn gè miàn./Gặp mặt một lát.|见 (Gặp) + 面 (Mặt/Diện - Nhất 一, Khẩu 口)|Động tân (ly hợp).|Hành động hai người nhìn thấy rõ khuôn mặt (面) trực tiếp của nhau.",
+            "教|jiāo|Động từ|dạy|教书。/Jiāoshū./Dạy học.|孝 (Hiếu - hiếu thảo), 攵 (Phộc - tay đánh)|Chữ hội ý.|Người bề trên phải dùng roi (攵) để đánh, rèn dũa con trẻ học sự hiếu thuận (孝) và các kiến thức văn hóa.",
+            "叫|jiào|Động từ|kêu, gọi, tên là|我叫阿明。/Wǒ jiào Ā Míng./Tôi tên là Minh.|口 (Khẩu - cái miệng), 丩 (Cưu - vướng mắc)|Chữ hình thanh.|Con người phải há miệng (口) to ra để phát ra âm thanh dùng để xưng hô, gọi tên một ai đó.",
+            "教学楼|jiàoxuélóu|Danh từ|tòa nhà giảng dạy|去教学楼。/Qù jiàoxuélóu./Đi tòa giảng đường.|教学 (Giảng dạy) + 楼 (Tòa nhà - Mộc 木, Mễ 米, Nữ 女)|Từ ghép.|Một tòa nhà được xây cất cao tầng (楼) chuyên sử dụng cho các hoạt động dạy và học (教学).",
+            "姐姐|jiějie|Danh từ|chị gái|我姐姐。/Wǒ jiějie./Chị gái tôi.|女 (Nữ - phụ nữ), 且 (Thả - vả lại)|Chữ hình thanh.|Một người mang giới tính phụ nữ (女) và được sinh ra trước mình trong gia đình.",
+            "介绍|jièshào|Động từ|giới thiệu, đề xuất|自我介绍。/Zìwǒ jièshào./Tự giới thiệu.|介 (Giới - Nhân 亻), 绍 (Thiệu - Mịch 纟, Đao 召)|Từ ghép.|Người đóng vai trò đứng ra làm trung gian (介) để kết nối (纟) những người xa lạ lại với nhau.",
+            "今年|jīnnián|Danh từ|năm nay|今年很好。/Jīnnián hěn hǎo./Năm nay rất tốt.|今 (Kim - hiện tại, Nhân 人), 年 (Năm - Can 干)|Từ ghép.|Khoảng chu kỳ thời gian 365 ngày của năm đang diễn ra ở thời điểm hiện tại.",
+            "今天|jīntiān|Danh từ|hôm nay|今天不忙。/Jīntiān bù máng./Hôm nay không bận.|今 (Kim - hiện tại), 天 (Ngày/Trời - Đại 大, Nhất 一)|Từ ghép.|Cái ngày (天) bao gồm 24 tiếng đồng hồ đang hiện hữu và diễn ra ở thời điểm hiện tại (今).",
+            "进|jìn|Động từ|vào|请进。/Qǐng jìn./Mời vào.|辶 (Xước - bước đi), 井 (Tỉnh - cái giếng)|Chữ hình thanh.|Dùng bước chân (辶) để đi tới, tiến vào một khu vực không gian hẹp hơn như trong nhà.",
+            "进来|jìnlái|Động từ|vào, đi vào (đây)|进来吧。/Jìnlái ba./Vào đây đi.|进 (Vào) + 来 (Đến)|Động bổ xu hướng.|Hành động bước vào nhưng hướng đang tiến gần về phía người phát ra câu nói (đang ở trong).",
+            "进去|jìnqù|Động từ|vào trong, đi vào (đó)|进去了。/Jìnqù le./Vào trong rồi.|进 (Vào) + 去 (Đi)|Động bổ xu hướng.|Hành động bước vào nhưng hướng ra xa cách khỏi người đang phát ra câu nói (đang ở ngoài).",
+            "九|jiǔ|Số từ|số 9|九点。/Jiǔ diǎn./Chín giờ.|Chính nó là bộ 九 (Cửu).|Chữ tượng hình.|Mô phỏng hình ảnh một cánh tay bị uốn cong, dùng để biểu diễn con số dương lớn nhất (số 9).",
+            "就|jiù|Phó từ|thì, liền, cứ, ngay, chính là|就是他。/Jiù shì tā./Chính là anh ta.|尤 (Vưu - khuyết điểm), 京 (Kinh - to lớn)|Chữ hội ý.|Dùng để nhấn mạnh một sự việc xảy ra rất nhanh chóng hoặc để khẳng định chắc nịch một điều gì đó.",
+            "觉得|juéde|Động từ|cảm thấy, nghĩ|我觉得。/Wǒ juéde./Tôi thấy/nghĩ.|觉 (Giác - Kiến 见, Mịch 冖), 得 (Đắc - Xích 彳)|Từ ghép.|Dùng các giác quan (觉) của con người để tiếp nhận, nhận định và suy nghĩ về một vấn đề.",
+            "开|kāi|Động từ|mở, bật|开门。/Kāimén./Mở cửa.|廾 (Củng - hai bàn tay), 一 (Nhất - một vạch)|Chữ hội ý.|Hình ảnh hai bàn tay vươn ra kéo then cài cửa (一) để mở tung cánh cửa ra.",
+            "开车|kāichē|Động từ|lái xe|会开车。/Huì kāichē./Biết lái xe.|开 (Mở/Lái), 车 (Xe - xa)|Động tân.|Hành động khởi động máy móc (mở) và trực tiếp điều khiển chiếc xe di chuyển.",
+            "开会|kāihuì|Động từ|họp|下午开会。/Xiàwǔ kāihuì./Buổi chiều họp.|开 (Mở), 会 (Hội - tụ tập, Nhân 人, Vân 云)|Động tân (ly hợp).|Khai mạc, mở (开) một buổi để mọi người hội tụ (会) lại cùng nhau bàn bạc công việc.",
+            "开玩笑|kāiwánxiào|Động từ|chọc, trêu, đùa|别开玩笑。/Bié kāi wánxiào./Đừng đùa.|开 (Mở), 玩笑 (Trò đùa - Ngoạn 玩, Tiếu 笑)|Động tân.|Chủ động tạo ra những câu nói hay hành động vui vẻ để trêu đùa người khác.",
+            "看|kàn|Động từ|xem, nhìn|看书。/Kàn shū./Đọc sách.|手 (Thủ - tay), 目 (Mục - mắt)|Chữ hội ý.|Đưa bàn tay (手) lên che nắng trên đôi mắt (目) để có thể tập trung nhìn cho thật rõ ràng.",
+            "看病|kànbìng|Động từ|khám bệnh|去看病。/Qù kànbìng./Đi khám bệnh.|看 (Xem), 病 (Bệnh - Nạch 疒)|Động tân (ly hợp).|Hành động người bệnh đến gặp bác sĩ để họ xem xét, kiểm tra (看) tình trạng ốm đau (病).",
+            "看到|kàndào|Động từ|nhìn thấy, thấy được|看到了。/Kàndào le./Thấy rồi.|看 (Nhìn) + 到 (Đến - Chí 至, Đao 刂)|Động bổ kết quả.|Mắt thực hiện hành động nhìn và đã chạm/bắt được hình ảnh phản chiếu (đến đích).",
+            "看见|kànjiàn|Động từ|trông thấy|没看见。/Méi kànjiàn./Không trông thấy.|看 (Nhìn) + 见 (Thấy - Kiến 见)|Động bổ kết quả.|Hành động chủ động nhìn (看) đã mang lại kết quả là trông thấy rất rõ (见).",
+            "考|kǎo|Động từ|thi, kiểm tra|考得好。/Kǎo de hǎo./Thi tốt.|老 (Lão - người già), 丂 (Khảo - âm đọc)|Chữ hình thanh.|Những người lớn tuổi, có kinh nghiệm/thầy giáo (老) ra đề để kiểm tra trình độ học vấn.",
+            "考试|kǎoshì|Danh/Động|thi, kỳ thi|今天考试。/Jīntiān kǎoshì./Hôm nay thi.|考 (Thi), 试 (Thử - Ngôn 讠, Thức 式)|Từ ghép.|Trải qua một bài kiểm tra (考) và làm bài thi thử (试) để nhà trường đánh giá năng lực.",
+            "渴|kě|Tính từ|khát|我很渴。/Wǒ hěn kě./Tôi rất khát.|氵 (Thủy - nước), 曷 (Hạt - âm đọc)|Chữ hình thanh.|Khi cơ thể đang bị thiếu nước trầm trọng (氵) thì sẽ cảm thấy cổ họng rất khô ráo và khát.",
+            "课|kè|Danh từ|bài học, tiết học|上课。/Shàngkè./Vào học.|讠 (Ngôn - lời nói), 果 (Quả - kết quả, Mộc 木)|Chữ hình thanh.|Giáo viên dùng ngôn từ (讠) để giảng dạy và thu lại kết quả (果) là một tiết học giá trị.",
+            "课本|kèběn|Danh từ|sách giáo khoa|买课本。/Mǎi kèběn./Mua sgk.|课 (Bài học), 本 (Cuốn/gốc rễ - Mộc 木)|Từ ghép.|Cuốn sách bản in (本) chính thống làm gốc rễ nền tảng để học sinh học các bài học (课) trên trường."
+        ];
+
+        // Decoder Function for Arrays: hz|py|type|vi|ex|radicals|construction|memoryTrick
+        function decodeSet(rawArray) {
+            return rawArray.map(str => {
+                const parts = str.split('|');
+                return {
+                    hz: parts[0] || "",
+                    py: parts[1] || "",
+                    type: parts[2] || "",
+                    vi: parts[3] || "",
+                    ex: parts[4] || "",
+                    details: {
+                        radicals: parts[5] || "",
+                        construction: parts[6] || "",
+                        memoryTrick: parts[7] || "",
+                        grammar: parts[8] ? {
+                            formula: parts[8],
+                            usage: parts[9] || "",
+                            dailyEx: parts[10] || "",
+                            workEx: parts[11] || ""
+                        } : null
+                    }
+                };
+            });
+        }
+
+        // Global State
+        let currentVocabulary = [];
+        let state = {
+            tab: 'library', score: 0, cardIndex: 0, showHz: true, showPy: true, showEx: true,
+            searchQuery: "", flashcardList: [], typingHzList: [], typingViList: [],
+            typingHzIndex: 0, typingViIndex: 0, memoryInputs: {}, startTime: 0, currentOffset: 0
+        };
+
+        let writers = []; let flashWriters = []; let isWritingFlash = false;
+
+        // --- CORE FUNCTIONS ---
+        function startApp(datasetIndex) {
+            if (datasetIndex === 1) { currentVocabulary = decodeSet(rawSet1); state.currentOffset = 0; } 
+            else if (datasetIndex === 2) { currentVocabulary = decodeSet(rawSet2); state.currentOffset = 50; }
+
+            state.flashcardList = [...currentVocabulary];
+            state.typingHzList = [...currentVocabulary];
+            state.typingViList = [...currentVocabulary];
+            state.memoryInputs = {};
+            state.score = 0;
+            state.startTime = Date.now();
+            document.getElementById('score-val').innerText = state.score;
+
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+
+            switchTab('library');
+            setInterval(updateTimer, 1000);
+        }
+
+        function goHome() {
+            document.getElementById('welcome-screen').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+            window.speechSynthesis.cancel();
+        }
+
+        function updateTimer() {
+            if (document.getElementById('welcome-screen').style.display !== 'none') return;
+            const diff = Math.floor((Date.now() - state.startTime) / 1000);
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            const el = document.getElementById('study-timer'); if (el) el.innerText = `${h}:${m}:${s}`;
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const ut = new SpeechSynthesisUtterance(text); ut.lang = 'zh-CN'; ut.rate = 0.82; window.speechSynthesis.speak(ut); return true;
+            } return false;
+        }
+
+        function launchFireworks() { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#bc241c', '#d4af37', '#ffffff'] }); }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+            return arr;
+        }
+
+        function switchTab(tab) {
+            state.tab = tab; isWritingFlash = false;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const label = btn.innerText.toLowerCase();
+                const target = tab==='library'?'thư viện':tab==='tips'?'mẹo':tab==='typingHz'?'hán':tab==='typingVi'?'việt':tab==='flashcard'?'flashcard':'trắc';
+                btn.className = label.includes(target) ? "tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white text-red-800 shadow-lg border-b-4 border-red-800" : "tab-btn flex-1 min-w-[120px] py-3 rounded-xl font-bold transition-all bg-white/50 text-gray-600";
+            });
+            render();
+        }
+
+        function handleMemoryCheck(inp, correct) {
+            const val = inp.value.trim(); state.memoryInputs[correct] = val;
+            if (val === correct) {
+                inp.classList.remove('wrong'); inp.classList.add('correct'); speak("对"); launchFireworks(); state.score += 5; document.getElementById('score-val').innerText = state.score;
+            } else {
+                let isCorr = true; for (let i = 0; i < val.length; i++) { if (val[i] !== correct[i]) { isCorr = false; break; } }
+                if (!isCorr || val.length >= correct.length) { inp.classList.remove('correct'); inp.classList.add('wrong'); speak("不对"); }
+                else inp.classList.remove('correct', 'wrong');
+            }
+        }
+
+        function parseExample(ex) {
+            const res = { hz: ex, py: "", vi: "" }; const m = ex.match(/\(([^)]+)\)/);
+            if (m) { res.hz = ex.split('(')[0].trim(); const p = m[1].split(' - '); res.py = p[0] ? p[0].trim() : ""; res.vi = p[1] ? p[1].trim() : ""; }
+            else if (ex.includes('/')) { const p = ex.split('/'); res.hz = p[0].trim(); res.py = p[1].trim(); res.vi = p[2].trim(); }
+            return res;
+        }
+
+        function parseGrammarEx(exStr) {
+            let hz = exStr, py = "", vi = "";
+            const parts = exStr.split('/');
+            if (parts.length >= 3) { hz = parts[0].trim(); py = parts[1].trim(); vi = parts[2].trim(); }
+            else { hz = exStr; }
+            return { hz, py, vi };
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function render() {
+            const body = document.getElementById('app-body'); body.innerHTML = '';
+            if (state.tab === 'library') renderLibrary(body);
+            else if (state.tab === 'tips') renderTips(body);
+            else if (state.tab === 'typingHz') renderTypingHz(body);
+            else if (state.tab === 'typingVi') renderTypingVi(body);
+            else if (state.tab === 'flashcard') renderFlashcard(body);
+            else if (state.tab === 'quiz') renderQuiz(body);
+        }
+
+        function renderLibrary(container) {
+            container.innerHTML = `<div class="w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 animate-fadeIn"><div class="bg-red-800 p-5 text-white flex flex-wrap justify-between items-center gap-4"><h2 class="font-bold text-lg">Thư viện Mê học trung</h2><input type="text" id="lib-search" placeholder="Gõ Chữ Hán, Pinyin hoặc Nghĩa..." class="search-box w-full max-sm" value="${state.searchQuery}"></div><div class="max-h-[65vh] overflow-y-auto scroll-custom"><table class="w-full text-left border-collapse min-w-[1300px]"><thead class="bg-gray-100 text-[11px] uppercase text-gray-500 sticky top-0 z-10 shadow-sm font-bold"><tr><th class="p-4 text-center w-12">STT</th><th class="p-4">Chữ Hán <button class="toggle-btn" onclick="state.showHz=!state.showHz; updateTableOnly()">Ẩn/Hiện</button></th><th class="p-4">Pinyin <button class="toggle-btn" onclick="state.showPy=!state.showPy; updateTableOnly()">Ẩn/Hiện</button></th><th class="p-4">Loại từ</th><th class="p-4">Nghĩa Việt</th><th class="p-4">Ví dụ <button class="toggle-btn" onclick="state.showEx=!state.showEx; updateTableOnly()">Ẩn/Hiện</button></th><th class="p-4 text-center">Tập viết</th><th class="p-4 text-center">Nghe</th><th class="p-4 text-center text-red-800">Nhớ chữ</th></tr></thead><tbody id="lib-tbody" class="divide-y divide-gray-50 text-sm"></tbody></table></div></div>`;
+            const searchInput = document.getElementById('lib-search');
+            searchInput.addEventListener('input', (e) => { state.searchQuery = e.target.value; updateTableOnly(); });
+            updateTableOnly();
+        }
+
+        function updateTableOnly() {
+            const tbody = document.getElementById('lib-tbody'); if (!tbody) return;
+            const q = state.searchQuery.toLowerCase();
+            const filtered = currentVocabulary.filter(v => v.hz.includes(q) || v.py.toLowerCase().includes(q) || v.vi.toLowerCase().includes(q));
+            tbody.innerHTML = filtered.map(w => { 
+                const ex = parseExample(w.ex); const savedVal = state.memoryInputs[w.hz] || "";
+                const stt = currentVocabulary.indexOf(w) + 1 + state.currentOffset;
+                return `<tr class="hover:bg-yellow-50 transition border-b border-gray-100">
+                    <td class="p-4 text-center font-bold text-gray-400">${stt}</td>
+                    <td class="p-4 chinese-font text-2xl font-bold text-red-800 ${state.showHz?'':'hidden-content'}">${w.hz}</td>
+                    <td class="p-4 text-gray-500 italic ${state.showPy?'':'hidden-content'}">${w.py}</td>
+                    <td class="p-4 font-semibold text-blue-600 uppercase text-[10px]">${w.type || '-'}</td>
+                    <td class="p-4 font-bold text-gray-700">${w.vi}</td>
+                    <td class="p-4 min-w-[320px]">
+                        <div class="flex items-start gap-2 bg-red-50/50 p-2 rounded-lg border border-red-100/50 ${state.showEx?'':'hidden-content'}">
+                            <div class="flex flex-col flex-1">
+                                <span class="chinese-font font-bold text-gray-800">${ex.hz}</span>
+                                <span class="text-[10px] text-gray-500 italic">${ex.py}</span>
+                                <span class="text-[11px] text-red-800 font-semibold mt-1">${ex.vi}</span>
+                            </div>
+                            <button onclick="speak('${ex.hz.replace(/'/g, "\\'")}')" class="text-red-400 p-1 hover:scale-110 transition-transform">🔊</button>
+                        </div>
+                    </td>
+                    <td class="p-4 text-center"><button onclick="openWritingModal('${w.hz}', '${w.py}')" class="text-china-gold hover:scale-125 transition text-xl">🖊️</button></td>
+                    <td class="p-4 text-center"><button onclick="speak('${w.hz}')" class="bg-red-50 p-2 rounded-full text-red-600 shadow-sm hover:scale-110 transition-transform">🔊</button></td>
+                    <td class="p-4 text-center"><input type="text" value="${savedVal}" placeholder="..." oninput="handleMemoryCheck(this, '${w.hz}')" class="memory-input"></td>
+                </tr>`}).join('');
+        }
+
+        function renderTips(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-4xl animate-fadeIn">
+                    <h2 class="text-2xl font-bold text-red-800 mb-6 text-center underline decoration-china-gold">💡 Mẹo Nhớ Chữ Hán (Phân Tích Chuyên Sâu)</h2>
+                    ${currentVocabulary.map((w) => {
+                        const stt = currentVocabulary.indexOf(w) + 1 + state.currentOffset;
+                        
+                        let grammarHtml = '';
+                        if (w.details && w.details.grammar) {
+                            const dEx = parseGrammarEx(w.details.grammar.dailyEx);
+                            const wEx = parseGrammarEx(w.details.grammar.workEx);
+
+                            grammarHtml = `
+                                <div class="mt-4 pt-4 border-t border-red-100">
+                                    <p class="font-bold text-red-700 mb-2 flex items-center gap-2"><span class="text-lg">📌</span> Cấu trúc & Cách dùng</p>
+                                    <div class="bg-red-50 text-red-900 font-mono font-bold p-2 rounded-lg mb-2 text-center shadow-inner border border-red-100">${w.details.grammar.formula}</div>
+                                    <p class="text-sm text-gray-700 italic mb-4">${w.details.grammar.usage}</p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm relative group hover:border-red-300 transition">
+                                            <p class="text-xs font-bold text-gray-400 uppercase mb-1">🌱 Đời sống</p>
+                                            <p class="chinese-font font-bold text-lg text-gray-800 pr-6 leading-tight">${dEx.hz}</p>
+                                            <p class="text-sm font-semibold text-blue-600 mt-1 tracking-wide">${dEx.py}</p>
+                                            <p class="text-xs text-gray-600 italic mt-1">${dEx.vi}</p>
+                                            <button onclick="speak('${dEx.hz.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors">
+                                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M11 5L6 9H2v2h4l5 4V5z"/></svg>
+                                            </button>
+                                        </div>
+                                        <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm relative group hover:border-red-300 transition">
+                                            <p class="text-xs font-bold text-gray-400 uppercase mb-1">🏭 Công xưởng</p>
+                                            <p class="chinese-font font-bold text-lg text-gray-800 pr-6 leading-tight">${wEx.hz}</p>
+                                            <p class="text-sm font-semibold text-blue-600 mt-1 tracking-wide">${wEx.py}</p>
+                                            <p class="text-xs text-gray-600 italic mt-1">${wEx.vi}</p>
+                                            <button onclick="speak('${wEx.hz.replace(/'/g, "\\'")}')" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors">
+                                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M11 5L6 9H2v2h4l5 4V5z"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        return `
+                        <div class="tip-card bg-white border-l-8 border-red-600 rounded-xl mb-4 p-5 shadow-md">
+                            <div class="tip-speaker" onclick="speak('${w.hz}')">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M11 5L6 9H2v2h4l5 4V5zM14.5 10c0-1.24-.72-2.3-1.75-2.81v5.62c1.03-.51 1.75-1.57 1.75-2.81z"/></svg>
+                            </div>
+                            <div class="flex items-center gap-4 mb-3">
+                                <span class="chinese-font text-4xl font-bold text-red-800">${stt}. ${w.hz}</span>
+                                <span class="text-gray-500 font-bold tracking-widest text-lg">${w.py}</span>
+                            </div>
+                            <p class="font-bold text-gray-800 mb-4 text-lg border-b-2 border-yellow-300 inline-block pb-1">${w.vi} (${w.type})</p>
+                            
+                            <div class="space-y-3 bg-yellow-50/30 p-4 rounded-lg border border-yellow-100/50">
+                                <p class="text-sm text-gray-700 leading-relaxed"><span class="font-bold text-red-800 text-base">🧩 Bộ thủ:</span> ${w.details.radicals || "Đang cập nhật..."}</p>
+                                <p class="text-sm text-gray-700 leading-relaxed"><span class="font-bold text-red-800 text-base">🏗️ Cấu tạo:</span> ${w.details.construction || "Đang cập nhật..."}</p>
+                                <p class="text-sm text-gray-700 leading-relaxed"><span class="font-bold text-red-800 text-base">💡 Mẹo nhớ:</span> ${w.details.memoryTrick || "Đang cập nhật..."}</p>
+                            </div>
+                            ${grammarHtml}
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        function renderTypingHz(container) {
+            const w = state.typingHzList[state.typingHzIndex];
+            container.innerHTML = `<div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border-t-8 border-red-800 text-center animate-fadeIn"><button onclick="state.typingHzList=shuffleArray([...currentVocabulary]); state.typingHzIndex=0; render()" class="mb-4 bg-yellow-500 hover:bg-yellow-600 text-red-900 font-bold py-1 px-4 rounded-full text-[10px] uppercase"><span>🔀</span> Đảo thứ tự gõ</button><h2 class="text-xl font-bold text-gray-500 mb-2 uppercase text-xs font-bold">Gõ Chữ Hán Tương Ứng</h2><div class="text-3xl font-bold text-red-800 mb-6 bg-red-50 p-6 rounded-2xl border-2 border-red-100 shadow-inner">${w.vi}</div><input type="text" id="type-input-hz" placeholder="Nhập chữ Hán..." class="w-full p-4 text-2xl text-center chinese-font border-2 border-gray-200 rounded-xl focus:border-red-500 outline-none"><div id="fb-hz" class="mt-4 flex flex-col items-center min-h-[60px]"><div id="fb-icon-hz" class="text-4xl"></div><div id="fb-py-hz" class="text-xl font-bold text-gray-500 italic"></div></div><div class="flex gap-2 mt-6"><button onclick="checkTypingHz()" class="btn-china flex-1 py-3 rounded-xl font-bold">Kiểm tra</button><button onclick="state.typingHzIndex=(state.typingHzIndex+1)%state.typingHzList.length; render()" class="bg-gray-200 text-gray-600 flex-1 py-3 rounded-xl font-bold">Bỏ qua</button></div><p class="mt-4 text-gray-400 font-bold text-[10px] uppercase tracking-widest">Tiến trình: ${state.typingHzIndex + 1} / ${currentVocabulary.length}</p></div>`;
+            document.getElementById('type-input-hz').focus();
+            document.getElementById('type-input-hz').addEventListener('keypress', e => { if(e.key==='Enter') checkTypingHz(); });
+        }
+
+        function checkTypingHz() {
+            const inp = document.getElementById('type-input-hz'); const val = inp.value.trim(); const correctWord = state.typingHzList[state.typingHzIndex];
+            if (val === correctWord.hz) {
+                document.getElementById('fb-icon-hz').innerText = '✅'; document.getElementById('fb-py-hz').innerText = correctWord.py;
+                state.score += 15; document.getElementById('score-val').innerText = state.score; speak("太好了"); launchFireworks(); 
+                setTimeout(() => { state.typingHzIndex = (state.typingHzIndex + 1) % state.typingHzList.length; render(); }, 2000);
+            } else { document.getElementById('fb-icon-hz').innerText = '❌'; speak("不对"); }
+        }
+
+        function isCorrectVietnamese(userInput, correctFullString) {
+            const inputClean = userInput.trim().toLowerCase();
+            const meanings = correctFullString.split(/[,/]/);
+            return meanings.some(m => {
+                let mainMeaning = m.split('(')[0].trim().toLowerCase();
+                let fullMeaning = m.trim().toLowerCase();
+                return inputClean === mainMeaning || inputClean === fullMeaning;
+            });
+        }
+
+        function renderTypingVi(container) {
+            const w = state.typingViList[state.typingViIndex];
+            container.innerHTML = `<div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border-t-8 border-red-800 text-center animate-fadeIn"><button onclick="state.typingViList=shuffleArray([...currentVocabulary]); state.typingViIndex=0; render()" class="mb-4 bg-yellow-500 hover:bg-yellow-600 text-red-900 font-bold py-1 px-4 rounded-full text-[10px] uppercase"><span>🔀</span> Đảo thứ tự gõ</button><h2 class="text-xl font-bold text-gray-500 mb-2 uppercase text-xs font-bold">Gõ Nghĩa Tiếng Việt</h2><div class="text-6xl font-bold text-red-800 mb-6 bg-red-50 p-6 rounded-2xl border-2 border-red-100 chinese-font shadow-inner">${w.hz}</div><input type="text" id="type-input-vi" placeholder="Nhập nghĩa tiếng Việt..." class="w-full p-4 text-lg text-center font-bold border-2 border-gray-200 rounded-xl focus:border-red-500 outline-none"><div id="fb-vi" class="mt-4 flex flex-col items-center min-h-[60px]"><div id="fb-icon-vi" class="text-4xl"></div><div id="fb-py-vi" class="text-xl font-bold text-gray-500 italic"></div></div><div class="flex gap-2 mt-6"><button onclick="checkTypingVi()" class="btn-china flex-1 py-3 rounded-xl font-bold">Kiểm tra</button><button onclick="state.typingViIndex=(state.typingViIndex+1)%state.typingViList.length; render()" class="bg-gray-200 text-gray-600 flex-1 py-3 rounded-xl font-bold">Bỏ qua</button></div><p class="mt-4 text-gray-400 font-bold text-[10px] uppercase tracking-widest">Tiến trình: ${state.typingViIndex + 1} / ${currentVocabulary.length}</p></div>`;
+            document.getElementById('type-input-vi').focus();
+            document.getElementById('type-input-vi').addEventListener('keypress', e => { if(e.key==='Enter') checkTypingVi(); });
+        }
+
+        function checkTypingVi() {
+            const inp = document.getElementById('type-input-vi'); const val = inp.value; const correctWord = state.typingViList[state.typingViIndex];
+            if (isCorrectVietnamese(val, correctWord.vi)) {
+                document.getElementById('fb-icon-vi').innerText = '✅'; document.getElementById('fb-py-vi').innerText = `${correctWord.py} (${correctWord.vi})`;
+                state.score += 15; document.getElementById('score-val').innerText = state.score; speak("太好了"); launchFireworks();
+                setTimeout(() => { state.typingViIndex = (state.typingViIndex + 1) % state.typingViList.length; render(); }, 2000);
+            } else { document.getElementById('fb-icon-vi').innerText = '❌'; speak("不对"); }
+        }
+
+        async function toggleFlashWrite(hz, btn) {
+            const staticHz = document.getElementById('static-hz'); const target = document.getElementById('flash-writer-container');
+            if (isWritingFlash) {
+                isWritingFlash = false; btn.classList.remove('active'); if(staticHz) staticHz.style.opacity = "1";
+                if(target) { target.style.display = "none"; target.innerHTML = ""; }
+            } else {
+                isWritingFlash = true; btn.classList.add('active'); if(staticHz) staticHz.style.opacity = "0";
+                if(target) {
+                    target.style.display = "block"; target.innerHTML = "";
+                    flashWriters = [];
+                    hz.split('').forEach((char, i) => {
+                        const div = document.createElement('div'); div.id = `fl-char-${i}`; div.style.display = "inline-block"; target.appendChild(div);
+                        const wr = HanziWriter.create(div.id, char, { width: 180, height: 180, padding: 5, strokeAnimationSpeed: 1, delayBetweenStrokes: 200, strokeColor: '#bc241c' });
+                        flashWriters.push(wr);
+                    });
+                    for (const wr of flashWriters) { if (!isWritingFlash) break; await wr.animateCharacter(); }
+                }
+            }
+        }
+
+        function renderFlashcard(container) {
+            const w = state.flashcardList[state.cardIndex]; isWritingFlash = false;
+            container.innerHTML = `<div class="flex flex-col items-center w-full animate-fadeIn"><button onclick="state.flashcardList=shuffleArray([...currentVocabulary]); state.cardIndex=0; render()" class="mb-6 bg-yellow-500 hover:bg-yellow-600 text-red-900 font-bold py-2 px-6 rounded-full shadow transition-all transform active:scale-95 uppercase text-xs font-bold"><span>🔀</span> Đảo Flashcard</button><div class="relative w-80 h-[480px] cursor-pointer group" onclick="this.classList.toggle('flipped')"><div class="card-inner relative w-full h-full"><div class="card-front"><div id="static-hz" class="chinese-font text-8xl mb-2 font-bold transition-opacity duration-300 text-white text-center">${w.hz}</div><div id="flash-writer-container" onclick="event.stopPropagation()"></div><span class="text-2xl font-semibold opacity-80 mb-8">${w.py}</span><div class="flex gap-6 mt-4"><div onclick="event.stopPropagation(); if(speak('${w.hz}')){this.classList.add('active'); setTimeout(()=>this.classList.remove('active'),1500)}" class="flash-action-btn"><span>🔊</span><p class="font-bold">NGHE</p></div><div onclick="event.stopPropagation(); toggleFlashWrite('${w.hz}', this)" class="flash-action-btn"><span>🖊️</span><p class="font-bold">VIẾT</p></div></div><p class="mt-12 text-[10px] uppercase tracking-widest opacity-40 text-white text-center">Click ngoài nút để lật xem nghĩa</p></div><div class="card-back text-center"><p class="text-blue-600 font-bold text-xs uppercase mb-2">${w.type}</p><h3 class="text-4xl font-bold text-red-800 mb-8">${w.vi}</h3><button onclick="event.stopPropagation(); this.closest('.group').classList.remove('flipped')" class="btn-china px-6 py-2 rounded-full text-xs font-bold uppercase">Quay lại</button></div></div></div><div class="flex gap-4 mt-8 w-full max-w-sm"><button onclick="state.cardIndex=(state.cardIndex-1+state.flashcardList.length)%state.flashcardList.length; render()" class="btn-china flex-1 py-3 rounded-xl font-bold uppercase">Lùi lại</button><button onclick="state.cardIndex=(state.cardIndex+1)%state.flashcardList.length; render()" class="btn-china flex-1 py-3 rounded-xl font-bold uppercase">Tiếp theo</button></div><p class="mt-4 text-red-800 font-bold opacity-50 text-xs uppercase tracking-widest">Thứ tự: ${state.cardIndex + 1} / ${state.flashcardList.length}</p></div>`;
+        }
+
+        function renderQuiz(container) {
+            const w = currentVocabulary[Math.floor(Math.random() * currentVocabulary.length)]; let opts = [w];
+            while(opts.length<4) { const r = currentVocabulary[Math.floor(Math.random()*currentVocabulary.length)]; if(!opts.some(o=>o.hz===r.hz)) opts.push(r); }
+            opts.sort(() => Math.random()-0.5);
+            container.innerHTML = `<div class="w-full max-w-2xl bg-white p-8 rounded-3xl shadow-xl border-t-8 border-red-800 text-center animate-fadeIn"><div class="chinese-font text-8xl font-bold text-red-800 my-4">${w.hz}</div><div class="text-xl text-gray-400 font-medium mb-8 font-semibold">${w.py}</div><div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="quiz-options">${opts.map(o => `<button onclick="handleQuizSelection(this, '${o.hz}', '${w.hz}')" class="p-5 border-2 border-gray-100 rounded-2xl font-bold text-gray-700 hover:border-red-500 transition-all shadow-sm">${o.vi}</button>`).join('')}</div></div>`;
+        }
+
+        function handleQuizSelection(btn, sel, cor) {
+            const container = document.getElementById('quiz-options'); if(container) container.style.pointerEvents = 'none';
+            if (sel === cor) { btn.classList.add('quiz-correct'); state.score += 10; document.getElementById('score-val').innerText = state.score; speak("对"); launchFireworks(); setTimeout(render, 1500); }
+            else { btn.classList.add('quiz-wrong'); speak("不对"); setTimeout(() => { if(container) container.style.pointerEvents = 'auto'; btn.classList.remove('quiz-wrong'); }, 1000); }
+        }
+
+        function openWritingModal(hz, py) {
+            document.getElementById('modal-pinyin').innerText = py; document.getElementById('writer-target').innerHTML = ""; document.getElementById('writing-modal').style.display = "flex";
+            writers = [];
+            hz.split('').forEach((char, i) => {
+                const divId = `lb-char-${i}`; const div = document.createElement('div'); div.id = divId; div.style.display = "inline-block"; document.getElementById('writer-target').appendChild(div);
+                const wr = HanziWriter.create(divId, char, { width: 150, height: 150, padding: 5, strokeAnimationSpeed: 1, delayBetweenStrokes: 200, strokeColor: '#bc241c' });
+                writers.push(wr);
+            });
+            animateStrokes();
+        }
+        function closeWritingModal() { document.getElementById('writing-modal').style.display = "none"; }
+        async function animateStrokes() { for (const wr of writers) await wr.animateCharacter(); }
+        
+        window.onload = () => { document.getElementById('welcome-screen').style.display = 'flex'; };
+    </script>
+</body>
+</html>
